@@ -1,30 +1,49 @@
-import { Message } from "../types";
+import {
+  ChatCompletionContentPart,
+  ChatCompletionMessageParam,
+} from "openai/resources";
 
 type BuildMessagesArrayParams = {
   text: string;
-  userName?: string;
+  userName: string;
   imageUrl?: string | null;
+  role?: "user" | "assistant";
 };
 
 export function buildMessage({
   userName,
   text,
   imageUrl,
-}: BuildMessagesArrayParams) {
-  const messageContent = [];
+  role = "user",
+}: BuildMessagesArrayParams): ChatCompletionMessageParam {
+  if (role === "assistant") {
+    return {
+      role,
+      content: text,
+    };
+  }
+
+  const messageContent: ChatCompletionContentPart[] = [];
 
   if (text) {
     messageContent.push({
       type: "text",
-      text: userName ? `[[senderName=${userName}]] ${text}` : text,
+      text: "Говорит " + userName + ": " + text,
     });
   }
+
   if (imageUrl) {
-    messageContent.push({ type: "image", image_url: imageUrl });
+    messageContent.push({
+      type: "image_url",
+      image_url: {
+        url: imageUrl,
+      },
+    });
   }
 
   return {
-    role: "user",
+    role,
+    name: userName,
     content: messageContent,
-  } as Message;
+  };
 }

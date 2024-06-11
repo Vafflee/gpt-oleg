@@ -1,19 +1,5 @@
-import { Conversation } from "./classes/conversation";
-
-export type Message = {
-  role: string;
-  content: string | (
-    | { type: "text"; text: string }
-    | { type: "image_url"; image_url: string }
-  )[];
-};
-
-export type MessageWithImage = {
-  role: "image_url";
-  image_url: string;
-};
-
-export type ConversationHistory = (Message | MessageWithImage)[];
+import { ChatCompletionMessageParam } from "openai/resources";
+import { Conversation } from "./classes/conversation/Conversation";
 
 export enum Model {
   geminiFlash = "google/gemini-flash-1.5",
@@ -23,22 +9,15 @@ export enum Model {
   gpt35turbo = "openai/gpt-3.5-turbo-0125",
   llama4lumimaid = "neversleep/llama-3-lumimaid-8b-large",
   geminiProVision = "vis-google/gemini-pro-1.5",
+  geminiFlashVision = "vis-google/gemini-flash-1.5",
+  transcription = "stt-openai/whisper-1",
+  dallE3 = "openai/dall-e-3",
+  dallE2 = "openai/dall-e-2",
 }
-
-export type SerializedConversation = {
-  id: number;
-  history: ConversationHistory;
-  systemMessage: {
-    role: "system";
-    content: string;
-  };
-  maxHistoryLength: number;
-  textModel: string;
-  visionModel: string;
-};
 
 declare module "vk-io" {
   interface MessageContext {
     conversation: Conversation;
+    forwardedMessages: ChatCompletionMessageParam[] | null;
   }
 }
