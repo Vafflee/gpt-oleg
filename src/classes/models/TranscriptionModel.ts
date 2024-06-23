@@ -18,6 +18,8 @@ export class TranscriptionModel {
       response_format: this.responseFormat,
       language: this.language,
     });
+    console.log(transcription);
+    
     return transcription;
   }
 }

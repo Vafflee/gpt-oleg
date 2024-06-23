@@ -2,6 +2,8 @@ import OpenAI from "openai";
 import { ENV } from "../constants/env";
 import axios from "axios";
 import { ChatCompletion, ChatCompletionMessageParam } from "openai/resources";
+import fs from "fs";
+import stream from "stream";
 
 export const ai = new OpenAI({
   baseURL: "https://api.vsegpt.ru/v1",

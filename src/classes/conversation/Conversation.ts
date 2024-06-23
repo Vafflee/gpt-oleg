@@ -36,7 +36,7 @@ export class Conversation {
   }: ConversationConstructorParams) {
     this.id = id;
     this.systemPrompt = systemPrompt;
-    this.textModel = new ChatModel({ model: textModel ?? Model.geminiFlash });
+    this.textModel = new ChatModel({ model: textModel ?? Model.gpt35turbo });
     this.visionModel = new ChatModel({
       model: visionModel ?? Model.geminiFlashVision,
     });
@@ -55,7 +55,7 @@ export class Conversation {
   async ask(
     messageToAsk: string,
     userName: string,
-    forwards: ChatCompletionMessageParam[]
+    forwards: ChatCompletionMessageParam[],
   ) {
     const messages = [
       buildSystemPrompt(this.systemPrompt),
@@ -74,7 +74,7 @@ export class Conversation {
     messageToAsk: string,
     userName: string,
     imageUrl: string,
-    forwards: ChatCompletionMessageParam[]
+    forwards: ChatCompletionMessageParam[],
   ) {
     const messages = [
       buildSystemPrompt(this.systemPrompt),

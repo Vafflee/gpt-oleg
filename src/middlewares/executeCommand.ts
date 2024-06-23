@@ -1,5 +1,6 @@
 import { MessageContext, VK } from "vk-io";
 import { commandsInfoMap } from "../commands/commandsInfoMap";
+import { getTextWithoutMentions } from "../helpers/getTextWithoutMentions";
 
 export async function executeCommand(
   context: MessageContext,
@@ -8,8 +9,9 @@ export async function executeCommand(
 ) {
   if (!context.is(["message"])) return;
 
+  const text = getTextWithoutMentions(context);
   const command = Object.values(commandsInfoMap).find((command) =>
-    context.text?.toLowerCase().startsWith(command.word)
+    text?.toLowerCase().startsWith(command.word)
   );
 
   if (!command) {

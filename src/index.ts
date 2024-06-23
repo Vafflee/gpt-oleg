@@ -9,6 +9,7 @@ import { vkMentionRegexp } from "./constants/constants";
 import { getAudioTranscription } from "./helpers/getAudioTranscription";
 import { getFirstPhotoAttachment } from "./helpers/getFirstPhotoAttachment";
 import { getUserName } from "./helpers/getUserName";
+import fs from "fs";
 
 const vk = new VK({
   token: ENV.VK_TOKEN,
@@ -32,36 +33,52 @@ vk.updates.on("message_new", async (context) => {
   try {
     const textToAsk = audioMessageUrl
       ? (await getAudioTranscription(audioMessageUrl)).text
-      : context.text;
+      : context.text?.replace(vkMentionRegexp, "").trim() ?? "";
+    console.log("textToAsk", textToAsk);
 
     if (!textToAsk) return;
 
-    const text =
-      context.text?.replace(vkMentionRegexp, "").trim() ?? transcription ?? "";
+    const text = textToAsk;
 
     const userName = await getUserName(vk, context);
 
     const imageUrl = getFirstPhotoAttachment(context);
 
-    let responseText = null;
+    let response: string | NodeJS.ReadableStream | null = null;
     if (imageUrl) {
-      responseText = await context.conversation.askWithImage(
+      response = await context.conversation.askWithImage(
         text,
         userName,
         imageUrl,
         context.forwardedMessages ?? []
       );
     } else {
-      responseText = await context.conversation.ask(
+      response = await context.conversation.ask(
         text,
         userName,
         context.forwardedMessages ?? []
       );
     }
 
-    if (!responseText) return;
+    if (!response) return;
 
-    context.send(responseText);
+    if (typeof response === "string") {
+      await context.send(response);
+      return;
+    }
+
+    await context.send("Готово! Ожидайте аудиосообщение...");
+    const audioMessageAttachment = await vk.upload.audioMessage({
+      source: {
+        value: response,
+      },
+      peer_id: context.peerId,
+    });
+    console.log("audioMessageAttachment", audioMessageAttachment.toString());
+
+    context.send({
+      attachment: audioMessageAttachment.toString(),
+    });
   } catch (error) {
     console.error(error);
     if (error instanceof Error) {
