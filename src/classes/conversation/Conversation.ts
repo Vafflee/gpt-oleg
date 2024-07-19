@@ -5,6 +5,7 @@ import { ChatModel } from "../models/ChatModel";
 import { Model } from "../../types";
 import { ArtistModel } from "../models/ArtistModel";
 import { ChatCompletionMessageParam } from "openai/resources";
+import { ENV } from "../../constants/env";
 
 export type ConversationConstructorParams = {
   id: number;
@@ -30,15 +31,15 @@ export class Conversation {
 
   constructor({
     id,
-    systemPrompt = defaultSystemPrompt,
-    textModel,
-    visionModel,
+    systemPrompt = ENV.DEFAULT_SYSTEM_PROMPT,
+    textModel = ENV.DEFAULT_TEXT_MODEL,
+    visionModel = ENV.DEFAULT_VISION_MODEL,
   }: ConversationConstructorParams) {
     this.id = id;
     this.systemPrompt = systemPrompt;
-    this.textModel = new ChatModel({ model: textModel ?? Model.gpt35turbo });
+    this.textModel = new ChatModel({ model: textModel });
     this.visionModel = new ChatModel({
-      model: visionModel ?? Model.geminiFlashVision,
+      model: visionModel,
     });
     this.artistModel = new ArtistModel();
   }

@@ -9,7 +9,6 @@ import { vkMentionRegexp } from "./constants/constants";
 import { getAudioTranscription } from "./helpers/getAudioTranscription";
 import { getFirstPhotoAttachment } from "./helpers/getFirstPhotoAttachment";
 import { getUserName } from "./helpers/getUserName";
-import fs from "fs";
 
 const vk = new VK({
   token: ENV.VK_TOKEN,
@@ -28,7 +27,6 @@ vk.updates.use((context, next) =>
 
 vk.updates.on("message_new", async (context) => {
   const audioMessageUrl = await extractAudioUrl(context);
-  let transcription: string | null = null;
 
   try {
     const textToAsk = audioMessageUrl
@@ -38,8 +36,6 @@ vk.updates.on("message_new", async (context) => {
 
     if (!textToAsk) return;
 
-    const text = textToAsk;
-
     const userName = await getUserName(vk, context);
 
     const imageUrl = getFirstPhotoAttachment(context);
@@ -47,14 +43,14 @@ vk.updates.on("message_new", async (context) => {
     let response: string | NodeJS.ReadableStream | null = null;
     if (imageUrl) {
       response = await context.conversation.askWithImage(
-        text,
+        textToAsk,
         userName,
         imageUrl,
         context.forwardedMessages ?? []
       );
     } else {
       response = await context.conversation.ask(
-        text,
+        textToAsk,
         userName,
         context.forwardedMessages ?? []
       );
