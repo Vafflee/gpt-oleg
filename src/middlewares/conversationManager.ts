@@ -1,16 +1,20 @@
-import { MessageContext } from "vk-io/lib/structures";
 import { Conversation } from "../classes/conversation/Conversation";
+import { IMiddleware } from "../framework/types";
+import { CtxData } from "../types";
 
-export async function conversationManager(
-  context: MessageContext,
-  next: () => {}
-) {
-  if (!context.is(["message"])) return;
-
-  const conversationId = context.conversation?.id ?? context.senderId;
+export const conversationManager: IMiddleware<CtxData | null> = async (
+  context,
+  next
+) => {
+  const conversationId =
+    context.additionalData?.conversation?.id ?? context.message.conversationId;
 
   const conversation = await Conversation.loadOrCreate(conversationId);
 
-  context.conversation = conversation;
-  return next();
-}
+  context.additionalData = {
+    ...context.additionalData,
+    conversation,
+  };
+
+  next();
+};

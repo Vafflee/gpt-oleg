@@ -15,9 +15,9 @@ export enum Model {
   dallE2 = "openai/dall-e-2",
 }
 
-declare module "vk-io" {
-  interface MessageContext {
-    conversation: Conversation;
-    forwardedMessages: ChatCompletionMessageParam[] | null;
-  }
-}
+export type CtxData = {
+  conversation: Conversation;
+};
+
+export type AsyncReturnType<T extends (...args: any) => Promise<any>> =
+    T extends (...args: any) => Promise<infer R> ? R : any

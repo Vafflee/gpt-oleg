@@ -1,87 +1,67 @@
-import { VK } from "vk-io";
-import { ENV } from "./constants/env";
-import { executeCommand } from "./middlewares/executeCommand";
+import { BotApp } from "./framework/BotApp";
 import { conversationManager } from "./middlewares/conversationManager";
-import { extractAudioUrl } from "./helpers/extractAudioUrl";
-import { MessageContext } from "vk-io/lib/structures";
-import { findAndSetForwardMessages } from "./middlewares/findAndSetForwardMessages";
-import { vkMentionRegexp } from "./constants/constants";
-import { getAudioTranscription } from "./helpers/getAudioTranscription";
-import { getFirstPhotoAttachment } from "./helpers/getFirstPhotoAttachment";
-import { getUserName } from "./helpers/getUserName";
+import { CtxData } from "./types";
+import { getFirstPhotoAttachment } from "./helpers/getFirstAttachmentHelpers";
+import { getDataForCompletionFromContext } from "./helpers/prepareDataForCompletion";
+import { getCompletion } from "./helpers/getCompletion";
+import { Conversation } from "./classes/conversation/Conversation";
 
-const vk = new VK({
-  token: ENV.VK_TOKEN,
-  apiVersion: "5.199",
+const app = new BotApp<CtxData>();
+
+app.addMiddleware(conversationManager);
+
+app.addMiddleware(async (ctx) => {
+  // console.log(context.message.attachments);
+  // console.log(context.history);
 });
 
-vk.updates.use(conversationManager);
+app.addCommand("ping", (ctx) => {
+  ctx.reply("Pong!");
+});
 
-vk.updates.use((context, next) =>
-  findAndSetForwardMessages(context as MessageContext, next, vk)
-);
+// app.addCommand("запомни", async (ctx, ...args) => {
+//   const conversation = ctx.additionalData?.conversation;
+//   if (!conversation) return;
 
-vk.updates.use((context, next) =>
-  executeCommand(context as MessageContext, vk, next)
-);
+//   if (args.length === 0) {
+//     ctx.reply("[ Необходимо передать текст для запоминания ]");
+//     return;
+//   }
 
-vk.updates.on("message_new", async (context) => {
-  const audioMessageUrl = await extractAudioUrl(context);
+//   const textToRemember = args.join(" ");
+//   conversation.remember(textToRemember);
+
+//   await Conversation.save(conversation);
+//   ctx.reply('[ Запомнил факт: "' + textToRemember + '" ]');
+// });
+
+app.addCommand("забудь", (ctx) => {
+  ctx.reply(
+    "[ Это сообщение и все предыдущие не будут учитываться в истории ]"
+  );
+});
+
+app.setDefaultHandler(async (ctx) => {
+  const conversation = ctx.additionalData?.conversation;
+  if (!conversation) return;
+
+  const dataForCompletion = await getDataForCompletionFromContext(ctx);
+  console.log("Last messages:");
+  console.log(dataForCompletion.lastMessages);
 
   try {
-    const textToAsk = audioMessageUrl
-      ? (await getAudioTranscription(audioMessageUrl)).text
-      : context.text?.replace(vkMentionRegexp, "").trim() ?? "";
-    console.log("textToAsk", textToAsk);
+    const completionText = await getCompletion(conversation, dataForCompletion);
+    console.log(completionText);
+    if (!completionText) return;
 
-    if (!textToAsk) return;
-
-    const userName = await getUserName(vk, context);
-
-    const imageUrl = getFirstPhotoAttachment(context);
-
-    let response: string | NodeJS.ReadableStream | null = null;
-    if (imageUrl) {
-      response = await context.conversation.askWithImage(
-        textToAsk,
-        userName,
-        imageUrl,
-        context.forwardedMessages ?? []
-      );
-    } else {
-      response = await context.conversation.ask(
-        textToAsk,
-        userName,
-        context.forwardedMessages ?? []
-      );
-    }
-
-    if (!response) return;
-
-    if (typeof response === "string") {
-      await context.send(response);
-      return;
-    }
-
-    await context.send("Готово! Ожидайте аудиосообщение...");
-    const audioMessageAttachment = await vk.upload.audioMessage({
-      source: {
-        value: response,
-      },
-      peer_id: context.peerId,
-    });
-    console.log("audioMessageAttachment", audioMessageAttachment.toString());
-
-    context.send({
-      attachment: audioMessageAttachment.toString(),
-    });
+    ctx.reply(completionText);
   } catch (error) {
     console.error(error);
+
     if (error instanceof Error) {
-      return await context.send(`[ Ошибка: ${error.message} ]`);
+      ctx.reply(`[ ${error.message} ]`);
     }
-    await context.send("[ Неизвестная ошибка ]");
   }
 });
 
-vk.updates.start();
+app.start();

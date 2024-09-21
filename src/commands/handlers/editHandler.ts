@@ -1,5 +1,5 @@
 import { vkMentionRegexp } from "../../constants/constants";
-import { getFirstPhotoAttachment } from "../../helpers/getFirstPhotoAttachment";
+import { getFirstPhotoAttachment } from "../../helpers/getFirstAttachmentHelpers";
 import { getTextWithoutMentions } from "../../helpers/getTextWithoutMentions";
 import { ICommandHandler } from "../types";
 
@@ -15,7 +15,10 @@ export const editHandler: ICommandHandler = async ({ context, vk }) => {
 
     context.send("Начинаю редактировать");
 
-    const generatedImageUrl = await context.conversation.editImage(prompt, imageUrl);
+    const generatedImageUrl = await context.conversation.editImage(
+      prompt,
+      imageUrl
+    );
     if (!generatedImageUrl) return context.send("[ Не удалось нарисовать ]");
 
     console.log("Finished editing: ", generatedImageUrl);

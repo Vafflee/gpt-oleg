@@ -1,3 +1,3 @@
 import { Config, JsonDB } from "node-json-db";
 
-export const db = new JsonDB(new Config("data", true, true, "/"));
+export const createDbConnection = () => new JsonDB(new Config("data", true, true, "/", true));

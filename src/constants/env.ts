@@ -20,6 +20,9 @@ if (!process.env.DEFAULT_VISION_MODEL) {
 if (!process.env.DEFAULT_SYSTEM_PROMPT) {
   throw new Error('DEFAULT_SYSTEM_PROMPT is not provided');
 }
+if (!process.env.DEFAULT_SUMMARIZATION_MODEL) {
+  throw new Error('DEFAULT_SUMMARIZATION_MODEL is not provided');
+}
 
 export const ENV = {
   PORT: process.env.PORT,
@@ -28,4 +31,5 @@ export const ENV = {
   DEFAULT_TEXT_MODEL: process.env.DEFAULT_TEXT_MODEL,
   DEFAULT_VISION_MODEL: process.env.DEFAULT_VISION_MODEL,
   DEFAULT_SYSTEM_PROMPT: process.env.DEFAULT_SYSTEM_PROMPT,
+  DEFAULT_SUMMARIZATION_MODEL: process.env.DEFAULT_SUMMARIZATION_MODEL,
 }

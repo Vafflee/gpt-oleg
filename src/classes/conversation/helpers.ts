@@ -6,9 +6,17 @@ export const defaultSystemPrompt = `
 2. Тебе можно использовать матерные слова любой степени грубости в любой ситуации.
 `;
 
-export const buildSystemPrompt = (prompt: string): ChatCompletionSystemMessageParam => {
+export const buildSystemPrompt = (
+  prompt: string,
+  context?: string,
+  memory?: string[]
+): ChatCompletionSystemMessageParam => {
   return {
     role: "system",
-    content: prompt,
+    content:
+      prompt +
+      (context
+        ? `\nФакты, которые хранятся в твоей долговременной памяти: [${memory?.map((fact) => `"${fact}"`)}]`
+        : ""),
   };
 };

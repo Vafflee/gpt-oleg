@@ -13,16 +13,11 @@ export class ChatModel {
   public setModel = (model: string) => (this.model = model);
 
   public async generateCompletion(messages: ChatCompletionMessageParam[]) {
-
-    console.log(messages);
-    
     const completion = await ai.chat.completions.create({
       model: this.model,
       messages,
+      temperature: 1.2,
     });
-
-    console.log(completion.choices[0].message);
-    
 
     return completion.choices[0].message;
   }

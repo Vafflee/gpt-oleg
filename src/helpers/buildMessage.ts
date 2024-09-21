@@ -4,7 +4,7 @@ import {
 } from "openai/resources";
 
 type BuildMessagesArrayParams = {
-  text: string;
+  text?: string;
   userName: string;
   imageUrl?: string | null;
   role?: "user" | "assistant";
